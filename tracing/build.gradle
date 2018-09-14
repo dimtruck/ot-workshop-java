@@ -1,0 +1,17 @@
+group 'com.satjug.workshop.opentracing'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile('com.squareup.okhttp3:okhttp:3.11.0')
+    compile('io.opentracing:opentracing-api:0.31.0')
+    compile('io.opentracing:opentracing-util:0.31.0')
+    compile('io.jaegertracing:jaeger-client:0.31.0')
+}

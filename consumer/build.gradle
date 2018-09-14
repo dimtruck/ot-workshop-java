@@ -1,0 +1,49 @@
+group 'com.satjug.workshop.opentracing'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'java-library'
+
+sourceCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation group: 'com.rabbitmq', name: 'amqp-client', version: '5.3.0'
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.11.1'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.6'
+    implementation group: 'org.apache.commons', name: 'commons-compress', version: '1.17'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.11.0'
+
+    implementation group: 'io.opentracing', name: 'opentracing-api', version: '0.31.0'
+    implementation group: 'io.opentracing', name: 'opentracing-util', version: '0.31.0'
+    implementation group: 'io.jaegertracing', name: 'jaeger-client', version: '0.31.0'
+    implementation files('libs/tracing-1.0-SNAPSHOT.jar')
+
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    testImplementation group: 'com.squareup.okhttp3', name: 'mockwebserver', version: '3.11.0'
+    testImplementation group: 'org.mockito', name: 'mockito-all', version: '1.10.19'
+}
+
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.satjug.workshop.opentracing.Worker'
+        )
+    }
+}

@@ -1,0 +1,88 @@
+version: '3'
+services:
+  umapi-agent:
+    image: jaegertracing/all-in-one
+    ports:
+    - "6831:6831/udp"
+    - "16686:16686"
+    - "14268:14268"
+  rabbitmq:
+    image: rabbitmq:3
+
+  umapi:
+    build:
+      context: ./user-management-api
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      AUTH_ENDPOINT: http://authapi:8080/tokens
+      USER_ENDPOINT: http://uapi:8080/users
+      TRACER_SERVICE_NAME: "user management api"
+      TRACER_HOST: umapi-agent
+      TRACER_PORT: 6831
+      TRACER: "jaeger"
+      TRACING_ENABLED: "true"
+      TRACING_LOG_SPANS: "true"
+      TRACER_SAMPLING_TYPE: "probabilistic"
+      TRACER_SAMPLING_VALUE: 0.5
+      TRACER_FLUSH_INTERVAL: 1
+      TRACER_MAX_BATCH_SIZE: 1
+    ports:
+    - "8080:8080"
+    volumes:
+    - ./user-management-api:/opt
+
+  uapi:
+    build:
+      context: ./user-api
+    environment:
+      AUTH_ENDPOINT: http://authapi:8080/tokens
+      TRACER_SERVICE_NAME: "user api"
+      TRACER_HOST: umapi-agent
+      TRACER_PORT: 6831
+      TRACER: "jaeger"
+      TRACING_ENABLED: "true"
+      TRACING_LOG_SPANS: "true"
+      TRACER_SAMPLING_TYPE: "const"
+      TRACER_SAMPLING_VALUE: 0
+      TRACER_FLUSH_INTERVAL: 1
+      TRACER_MAX_BATCH_SIZE: 1
+    volumes:
+    - ./user-api:/opt
+
+  authapi:
+    build:
+      context: ./auth-api
+    volumes:
+    - ./auth-api:/opt
+    environment:
+      TRACER_SERVICE_NAME: "auth api"
+      TRACER_HOST: umapi-agent
+      TRACER_PORT: 6831
+      TRACER: "jaeger"
+      TRACING_ENABLED: "true"
+      TRACING_LOG_SPANS: "true"
+      TRACER_SAMPLING_TYPE: "const"
+      TRACER_SAMPLING_VALUE: 0
+      TRACER_FLUSH_INTERVAL: 1
+      TRACER_MAX_BATCH_SIZE: 1
+
+  consumer:
+    build:
+      context: ./consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      USER_ENDPOINT: http://uapi:8080/users
+      TRACER_SERVICE_NAME: "consumer api"
+      TRACER_HOST: umapi-agent
+      TRACER_PORT: 6831
+      TRACER: "jaeger"
+      TRACING_ENABLED: "true"
+      TRACING_LOG_SPANS: "true"
+      TRACER_SAMPLING_TYPE: "const"
+      TRACER_SAMPLING_VALUE: 0
+      TRACER_FLUSH_INTERVAL: 1
+      TRACER_MAX_BATCH_SIZE: 1
+    volumes:
+    - ./consumer:/opt
