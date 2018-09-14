@@ -1,0 +1,41 @@
+version: '3'
+services:
+  rabbitmq:
+    image: rabbitmq:3
+
+  umapi:
+    build:
+      context: ./user-management-api
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      AUTH_ENDPOINT: http://authapi:8080/tokens
+      USER_ENDPOINT: http://uapi:8080/users
+    ports:
+    - "8080:8080"
+    volumes:
+    - ./user-management-api:/opt
+
+  uapi:
+    build:
+      context: ./user-api
+    environment:
+      AUTH_ENDPOINT: http://authapi:8080/tokens
+    volumes:
+    - ./user-api:/opt
+
+  authapi:
+    build:
+      context: ./auth-api
+    volumes:
+    - ./auth-api:/opt
+
+  consumer:
+    build:
+      context: ./consumer
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      USER_ENDPOINT: http://uapi:8080/users
+    volumes:
+    - ./consumer:/opt
